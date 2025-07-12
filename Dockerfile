@@ -1,21 +1,12 @@
-# ---------- Stage 1: build the WAR with Maven ----------
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
+FROM tomcat:9.0 AS stage1
+RUN apt update -y && apt install -y  git wget 
+WORKDIR /app
+RUN git clone https://github.com/dev-ajay-git/tomcat-config.git
 
-# Copy Maven project files
-COPY pom.xml .
-COPY src ./src
+FROM tomcat:9.0 AS stage2
+RUN cp -r webapps.dist/* webapps/
+COPY --from=stage1 /app/tomcat-config/context.xml /usr/local/tomcat/webapps/manager/META-INF/context.xml
+COPY --from=stage1 /app/tomcat-config/context.xml /usr/local/tomcat/webapps/host-manager/META-INF/context.xml
+COPY --from=stage1 /app/tomcat-config/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
 
-# Build the WAR
-RUN mvn -B clean package
-
-# ---------- Stage 2: lightweight Tomcat runtime ----------
-FROM tomcat:9-jdk17
-
-# Copy the built WAR into Tomcat’s webapps folder
-COPY --from=builder target/webapp.war /usr/local/tomcat/webapps/
-
-# Expose Tomcat’s default port
-EXPOSE 8080
-
-CMD ["catalina.sh", "run"]
-
+COPY target/webapp.war /usr/local/tomcat/webapps/webapp.war
