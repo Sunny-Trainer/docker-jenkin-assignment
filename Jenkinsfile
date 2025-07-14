@@ -31,8 +31,10 @@ sh 'docker build -t sunnytrainer/tomcat25 . '
 }
   stage('Docker Run') {
             steps {
+              sh '''
               docker rm -f webapp-container || true
-                sh 'docker run -d -p 9090:8080 --name webapp-container sunnytrainer/tomcat25'
+              docker run -d -p 9090:8080 --name webapp-container sunnytrainer/tomcat25'
+              '''
 }
 }
 }
