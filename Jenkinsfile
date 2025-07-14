@@ -19,5 +19,15 @@ steps {
 sh 'docker build -t sunnytrainer/tomcat25 . '
 }
 }
+  stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        docker push sunnytrainer/tomcat25
+                    '''
 }
+}
+}
+}  
 }
